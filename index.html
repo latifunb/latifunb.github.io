@@ -26,6 +26,106 @@ integrity="sha512-gZMQNV9TtWnK+L4eZ1iP6lyw5rZj2DU1fQJ1R5fqAd1cZ+pCnXsD-nOHHuAcF3
 <button id="share-status">Share My Status</button>
 <!-- Add your additional HTML elements here -->
 
+<script>
+// Define the MQTT broker connection options
+let mqttOptions = {
+  host: '',
+  port: '',
+  clientId: 'mqttjs_' + Math.random().toString(16).substr(2, 8),
+  path: '/mqtt'
+};
 
+// Create a new Paho.MQTT.Client instance
+let client;
+
+// Set callback handlers
+function onConnectionLost(responseObject) {
+  if (responseObject.errorCode !== 0) {
+    console.log("onConnectionLost:"+responseObject.errorMessage);
+    // Try to reconnect
+    client.connect({onSuccess:onConnect, onFailure:onFailure});
+  }
+}
+
+function onMessageArrived(message) {
+  console.log("onMessageArrived:"+message.payloadString);
+  // Update the map with the received message
+  updateMap(message);
+}
+
+function onConnect() {
+  console.log("Connected to MQTT broker");
+  client.subscribe("<your course code>/<your name>/my_temperature");
+}
+
+function onFailure(error) {
+  console.log("Connection failed: " + error.errorMessage);
+}
+
+// Send a message
+function sendMessage(message, topic) {
+  let message = new Paho.MQTT.Message(message);
+  message.destinationName = topic;
+  client.send(message);
+}
+
+// Initialize the map with Leaflet.js
+let mymap = L.map('map').setView([51.505, -0.09], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom: 19,
+  attribution: '© OpenStreetMap contributors'
+}).addTo(mymap);
+
+// Geolocation API to get the current position
+function shareStatus() {
+  navigator.geolocation.getCurrentPosition(function(position) {
+    // Create a GeoJSON message with the current location and a random temperature
+    let temperature = Math.random() * 50 - 40; // Random temperature between -40 and 10
+    let geojsonMessage = {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: [position.coords.longitude, position.coords.latitude]
+      },
+      properties: {
+        temperature: temperature
+      }
+    };
+    
+    // Determine the color based on the temperature
+    let color = temperature < 10 ? 'blue' : temperature < 30 ? 'green' : 'red';
+    
+    // Add a marker to the map with the temperature
+    L.marker([position.coords.latitude, position.coords.longitude], {icon: L.divIcon({className: 'my-div-icon', html: '<div style="background-color:' + color + ';">' + temperature.toFixed(1) + '°C</div>'})}).addTo(mymap).bindPopup("Temperature: " + temperature.toFixed(1) + "°C");
+    
+    // Send the GeoJSON message as an MQTT message
+    sendMessage(JSON.stringify(geojsonMessage), "<your course code>/<your name>/my_temperature");
+  });
+}
+
+// Handle the Start button click
+document.getElementById('start').addEventListener('click', function() {
+  mqttOptions.host = document.getElementById('host').value;
+  mqttOptions.port = document.getElementById('port').value;
+  client = new Paho.MQTT.Client(mqttOptions.host, Number(mqttOptions.port), mqttOptions.path, mqttOptions.clientId);
+  client.onConnectionLost = onConnectionLost;
+  client.onMessageArrived = onMessageArrived;
+  client.connect({onSuccess:onConnect, onFailure:onFailure});
+  document.getElementById('start').disabled = true;
+  document.getElementById('end').disabled = false;
+});
+
+// Handle the End button click
+document.getElementById('end').addEventListener('click', function() {
+  client.disconnect();
+  console.log("Disconnected from MQTT broker");
+  document.getElementById('start').disabled = false;
+  document.getElementById('end').disabled = true;
+});
+
+// Handle the Share My Status button click
+document.getElementById('share-status').addEventListener('click', shareStatus);
+
+</script>
 </body>
 </html>
