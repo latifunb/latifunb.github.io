@@ -1,21 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>GeoWeb IoT Sensor Application</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
-<!-- Include Leaflet.js from a CDN -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
-integrity="sha512-xodZBNTC5n17Xt2vEFF1dGR+r5QFZw1CmUqOou6+5W5NQoEU6Aoa1QDZqc5zXe8U
-lH+K5F2HNehhZy2AsFP6Q==" crossorigin=""/>
-<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
-integrity="sha512-gZMQNV9TtWnK+L4eZ1iP6lyw5rZj2DU1fQJ1R5fqAd1cZ+pCnXsD-nOHHuAcF3xNJZV8TuC7zK7Y5eFrLFae1Q==" crossorigin=""></script>
-<style>
-  /* Add your CSS styling here */
-  #map {
-    height: 400px;
-  }
-</style>
+  <meta charset="UTF-8">
+  <title>GeoWeb IoT Sensor Application</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js" type="text/javascript"></script>
+  <!-- Include Leaflet.js from a CDN 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+  integrity="sha512-xodZBNTC5n17Xt2vEFF1dGR+r5QFZw1CmUqOou6+5W5NQoEU6Aoa1QDZqc5zXe8U
+  lH+K5F2HNehhZy2AsFP6Q==" crossorigin=""/>  -->
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+
+  <!-- Leaflet JavaScript 
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+  integrity="sha512-gZMQNV9TtWnK+L4eZ1iP6lyw5rZj2DU1fQJ1R5fqAd1cZ+pCnXsD-nOHHuAcF3xNJZV8TuC7zK7Y5eFrLFae1Q==" crossorigin=""></script>
+  -->
+  <!-- Leaflet JavaScript -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+
+
+  <style>
+    /* Add your CSS styling here */
+    #map {
+      height: 400px;
+    }
+  </style>
 </head>
 <body>
 <div id="map"></div>
@@ -55,7 +65,7 @@ function onMessageArrived(message) {
 
 function onConnect() {
   console.log("Connected to MQTT broker");
-  client.subscribe("<your course code>/<your name>/my_temperature");
+  client.subscribe("latifun/my_temperature");
 }
 
 function onFailure(error) {
@@ -64,9 +74,9 @@ function onFailure(error) {
 
 // Send a message
 function sendMessage(message, topic) {
-  let message = new Paho.MQTT.Message(message);
-  message.destinationName = topic;
-  client.send(message);
+  let pahomessage = new Paho.MQTT.Message(message);
+  pahomessage.destinationName = topic;
+  client.send(pahomessage);
 }
 
 // Initialize the map with Leaflet.js
@@ -99,7 +109,7 @@ function shareStatus() {
     L.marker([position.coords.latitude, position.coords.longitude], {icon: L.divIcon({className: 'my-div-icon', html: '<div style="background-color:' + color + ';">' + temperature.toFixed(1) + '°C</div>'})}).addTo(mymap).bindPopup("Temperature: " + temperature.toFixed(1) + "°C");
     
     // Send the GeoJSON message as an MQTT message
-    sendMessage(JSON.stringify(geojsonMessage), "<your course code>/<your name>/my_temperature");
+    sendMessage(JSON.stringify(geojsonMessage), "651/latifun/temp_temperature");
   });
 }
 
