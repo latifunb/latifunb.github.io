@@ -109,7 +109,7 @@ function shareStatus() {
     L.marker([position.coords.latitude, position.coords.longitude], {icon: L.divIcon({className: 'my-div-icon', html: '<div style="background-color:' + color + ';">' + temperature.toFixed(1) + '°C</div>'})}).addTo(mymap).bindPopup("Temperature: " + temperature.toFixed(1) + "°C");
     
     // Send the GeoJSON message as an MQTT message
-    sendMessage(JSON.stringify(geojsonMessage), "651/latifun/temp_temperature");
+    sendMessage(JSON.stringify(geojsonMessage), "latifun/temp_temperature");
   });
 }
 
