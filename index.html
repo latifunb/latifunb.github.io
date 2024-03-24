@@ -29,7 +29,7 @@
         var reconnectTimeout = 2000;
 
         function MQTTconnect() {
-            mqttClient = new Paho.Client('broker.emqx.io', Number('1883'), 'mqttx_e90ab22d');
+            mqttClient = new Paho.Client('broker.emqx.io', Number(8083), 'mqttx_e90ab22d');
             var options = {
                 timeout: 3,
                 onSuccess: onConnect,
@@ -42,7 +42,7 @@
 
         function onConnect() {
             console.log('Connected to MQTT broker');
-            mqttClient.subscribe('latifun/my_temperature');
+            mqttClient.subscribe('my_temperature');
             mqttClient.onMessageArrived = onMessageArrived;
         }
 
@@ -79,7 +79,7 @@
                         }
                     };
                     var message = new Paho.Message(JSON.stringify(geojson));
-                    message.destinationName = 'latifun/my_temperature';
+                    message.destinationName = 'my_temperature';
                     mqttClient.send(message);
                 });
             }
