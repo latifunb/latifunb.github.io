@@ -2,7 +2,7 @@ Run the index.html file on a phone with chrome browser
 
 Following are included in the html file and the app.
 
-User should be able to insert the MQTT message broker host and port number.
+User can insert the MQTT message broker host and port number.
 Both Start and End button is added for connecting or disconnecting the connection with the MQTT message broker. 
 When user clicks the start button, host and port input fields are disabled untill End button is clicked.
 Users will receive a message when disconnected. 
