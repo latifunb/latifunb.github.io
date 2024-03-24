@@ -10,11 +10,20 @@
         #map {
             width: 80%;
             height: 400px;
+            padding-left: 100px;
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
+    <div>
+      <label for="host">MQTT Broker Host:</label>
+      <input type="text" id="host">
+      <label for="port">MQTT Broker Port:</label>
+      <input type="text" id="port">
+      <label for="topic">Topic Name:</label>
+      <input type="text" id="topic">
+    </div>
     <button id="start">Start</button>
     <button id="end" disabled>End</button>
     <button id="share-status">Share My Status</button>
@@ -29,8 +38,17 @@
         var mqttClient;
         var reconnectTimeout = 2000;
 
+        const hostInput = document.getElementById('host');
+        const portInput = document.getElementById('port');
+        const topicInput = document.getElementById('topic');
+
+        //const topic = topicInput.value;
+
         function MQTTconnect() {
-            mqttClient = new Paho.Client('broker.emqx.io', Number(8083), 'mqttx_e90ab22d');
+            const host = hostInput.value;
+            const port = portInput.value;
+            //var topic = topicInput.value;
+            mqttClient = new Paho.Client(host, Number(port), 'mqttx_e90ab22d');
             var options = {
                 timeout: 3,
                 onSuccess: onConnect,
@@ -43,7 +61,9 @@
 
         function onConnect() {
             console.log('Connected to MQTT broker');
-            mqttClient.subscribe('my_temperature');
+            const topic = topicInput.value;
+            console.log(topic);
+            mqttClient.subscribe(topic);
             mqttClient.onMessageArrived = onMessageArrived;
         }
 
@@ -55,18 +75,24 @@
         document.getElementById('start').addEventListener('click', function() {
             this.disabled = true;
             document.getElementById('end').disabled = false;
+            document.getElementById('host').disabled = true;
+            document.getElementById('port').disabled = true;
             MQTTconnect();
         });
 
         document.getElementById('end').addEventListener('click', function() {
             this.disabled = true;
             document.getElementById('start').disabled = false;
-            if(mqttClient.isConnected()) {
-                mqttClient.disconnect();
-            }
+            document.getElementById('host').disabled = false;
+            document.getElementById('port').disabled = false;
+            alert("Connection is disconnected");
+            //if(mqttClient.isConnected()) {
+            mqttClient.disconnect();
+            //}
         });
 
         document.getElementById('share-status').addEventListener('click', function() {
+          //var topic = topicInput.value;
             if(navigator.geolocation) {
                 navigator.geolocation.getCurrentPosition(function(position) {
                     var geojson = {
@@ -80,7 +106,9 @@
                         }
                     };
                     var message = new Paho.Message(JSON.stringify(geojson));
-                    message.destinationName = 'my_temperature';
+                    const topic = topicInput.value;
+                    console.log(topic);
+                    message.destinationName = topic;
                     mqttClient.send(message);
                 });
             }
@@ -93,7 +121,7 @@
             var color = temperature < 10 ? 'blue' : temperature < 30 ? 'green' : 'red';
 
             L.circle(e.latlng, radius, { color: color }).addTo(map)
-                .bindPopup("You are within " + radius + " meters from this point. Temperature: " + temperature + "°C").openPopup();
+                .bindPopup("You are within " + Math.floor(radius) + " meters from this point. Temperature: " + temperature + "°C").openPopup();
         }
 
         function onLocationError(e) {
